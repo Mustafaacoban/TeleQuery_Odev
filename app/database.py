@@ -1,7 +1,8 @@
+import os
 import sqlite3
 from contextlib import contextmanager
 
-DB_NAME = "tele_query.db"
+DB_NAME = os.getenv("DATABASE_URL", "tele_query.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS regions (
@@ -11,7 +12,7 @@ CREATE TABLE IF NOT EXISTS regions (
 CREATE TABLE IF NOT EXISTS packages (
     package_id   INTEGER PRIMARY KEY AUTOINCREMENT,
     package_name TEXT NOT NULL,
-    monthly_fee  DECIMAL(8,2) NOT NULL
+    monthly_fee  REAL NOT NULL
 );
 CREATE TABLE IF NOT EXISTS customers (
     customer_id  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,8 +28,9 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     subscription_id   INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id       INTEGER NOT NULL,
     package_id        INTEGER NOT NULL,
-    price_at_purchase DECIMAL(8,2) NOT NULL,
-    status            TEXT DEFAULT 'active',
+    price_at_purchase REAL NOT NULL,
+    status            TEXT DEFAULT 'active' CHECK(status IN ('active', 'cancelled', 'suspended')),
+    started_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
     FOREIGN KEY (package_id)  REFERENCES packages(package_id)
 );
@@ -39,6 +41,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 def get_connection(db_name: str = DB_NAME):
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
     try:
         yield conn
         conn.commit()
@@ -50,10 +53,5 @@ def get_connection(db_name: str = DB_NAME):
 
 
 def init_db(db_name: str = DB_NAME):
-    try:
-        with get_connection(db_name) as conn:
-            conn.executescript(SCHEMA)
-        print("Veritabanı başlatıldı.")
-    except sqlite3.Error as e:
-        print(f"Veritabanı başlatma hatası: {e}")
-        raise
+    with get_connection(db_name) as conn:
+        conn.executescript(SCHEMA)
