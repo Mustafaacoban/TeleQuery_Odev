@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleQuery Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .nav-active { background-color: rgb(51 65 85); color: white !important; }
+        .nav-active:hover { background-color: rgb(51 65 85) !important; }
+    </style>
+</head>
+<body class="bg-slate-100 h-screen overflow-hidden flex text-slate-800">
+
+<!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+<aside class="w-56 bg-slate-900 text-white flex flex-col flex-shrink-0">
+    <div class="p-4 border-b border-slate-700/50">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm">TeleQuery</h1>
+                <p class="text-xs text-slate-400">v2.0.0</p>
+            </div>
+        </div>
+    </div>
+
+    <nav class="flex-1 p-3 space-y-0.5">
+        <button class="nav-btn nav-active w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-2.5 transition-colors" data-tab="dashboard">
+            <span>📊</span><span>Dashboard</span>
+        </button>
+        <button class="nav-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-2.5 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors" data-tab="customers">
+            <span>👤</span><span>Müşteriler</span>
+        </button>
+        <button class="nav-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-2.5 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors" data-tab="subscriptions">
+            <span>📡</span><span>Abonelikler</span>
+        </button>
+        <button class="nav-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-2.5 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors" data-tab="invoices">
+            <span>🧾</span><span>Faturalar</span>
+        </button>
+        <button class="nav-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-2.5 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors" data-tab="payments">
+            <span>💳</span><span>Ödemeler</span>
+        </button>
+        <button class="nav-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-2.5 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors" data-tab="tickets">
+            <span>🎫</span><span>Destek Talepleri</span>
+        </button>
+        <button class="nav-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-2.5 text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors" data-tab="packages">
+            <span>📦</span><span>Paketler</span>
+        </button>
+    </nav>
+
+    <div class="p-4 border-t border-slate-700/50">
+        <a href="/docs" target="_blank" class="flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors">
+            <span>🔗</span><span>API Dokümantasyonu</span>
+        </a>
+    </div>
+</aside>
+
+<!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+<div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between shadow-sm flex-shrink-0">
+        <h2 id="page-title" class="text-base font-semibold">Dashboard</h2>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="flex-1 overflow-auto p-6">
+
+        <!-- ─────────────────── DASHBOARD ─────────────────── -->
+        <section id="tab-dashboard" class="tab-section">
+            <div class="grid grid-cols-4 gap-4 mb-5">
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Toplam Müşteri</p>
+                    <p id="stat-customers" class="text-3xl font-bold text-slate-800 mt-2">…</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Aktif Abonelik</p>
+                    <p id="stat-subs" class="text-3xl font-bold text-blue-600 mt-2">…</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Ödenmemiş Fatura</p>
+                    <p id="stat-unpaid" class="text-3xl font-bold text-red-500 mt-2">…</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Açık Destek</p>
+                    <p id="stat-tickets" class="text-3xl font-bold text-orange-500 mt-2">…</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-5">
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-4">Paket Dağılımı</h3>
+                    <div id="pkg-stats" class="space-y-3"></div>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-4">Bölge Dağılımı</h3>
+                    <div id="reg-stats" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+                <div class="px-5 py-4 border-b border-slate-100">
+                    <h3 class="text-sm font-semibold text-slate-700">Müşteri Durumu (İlk 20)</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-50">
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">MÜŞTERİ</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">BÖLGE</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">PAKET</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">DURUM</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">BORÇ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dash-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────── MÜŞTERİLER ─────────────────── -->
+        <section id="tab-customers" class="tab-section hidden">
+            <div class="flex gap-3 mb-4">
+                <input id="cust-search" type="text" placeholder="Ad, soyad, e-posta veya telefon ara…"
+                    class="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="cust-region" class="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Tüm Bölgeler</option>
+                </select>
+                <button onclick="openModal('customer')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-700 transition-colors font-medium">
+                    + Yeni Müşteri
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/70">
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">AD SOYAD</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">E-POSTA</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">TELEFON</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">BÖLGE</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">KAYIT TARİHİ</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">İŞLEM</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cust-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <span id="cust-info" class="text-xs text-slate-400"></span>
+                    <div class="flex gap-2">
+                        <button id="cust-prev" onclick="pg('customers',-1)" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors">← Önceki</button>
+                        <button id="cust-next" onclick="pg('customers',1)"  class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors">Sonraki →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────── ABONELİKLER ─────────────────── -->
+        <section id="tab-subscriptions" class="tab-section hidden">
+            <div class="flex gap-3 mb-4">
+                <select id="sub-status" onchange="loadSubs()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="active">Aktif</option>
+                    <option value="cancelled">İptal Edilmiş</option>
+                    <option value="suspended">Askıya Alınmış</option>
+                </select>
+                <button onclick="openModal('subscription')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-700 transition-colors font-medium ml-auto">
+                    + Yeni Abonelik
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/70">
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">MÜŞTERİ</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">PAKET</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">FİYAT</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">DURUM</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">BAŞLANGIÇ</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">İŞLEM</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sub-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <span id="sub-info" class="text-xs text-slate-400"></span>
+                    <div class="flex gap-2">
+                        <button onclick="pg('subscriptions',-1)" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">← Önceki</button>
+                        <button onclick="pg('subscriptions',1)"  class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">Sonraki →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────── FATURALAR ─────────────────── -->
+        <section id="tab-invoices" class="tab-section hidden">
+            <div class="flex gap-3 mb-4">
+                <select id="inv-status" onchange="loadInvs()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="Unpaid">Ödenmemiş</option>
+                    <option value="Paid">Ödenmiş</option>
+                    <option value="Overdue">Gecikmiş</option>
+                </select>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/70">
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">ABONELİK ID</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">TUTAR</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">SON ÖDEME TARİHİ</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">DURUM</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">İŞLEM</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inv-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <span id="inv-info" class="text-xs text-slate-400"></span>
+                    <div class="flex gap-2">
+                        <button onclick="pg('invoices',-1)" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">← Önceki</button>
+                        <button onclick="pg('invoices',1)"  class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">Sonraki →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────── ÖDEMELER ─────────────────── -->
+        <section id="tab-payments" class="tab-section hidden">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/70">
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">FATURA ID</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">TUTAR</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">YÖNTEM</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">TARİH</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pay-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <span id="pay-info" class="text-xs text-slate-400"></span>
+                    <div class="flex gap-2">
+                        <button onclick="pg('payments',-1)" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">← Önceki</button>
+                        <button onclick="pg('payments',1)"  class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">Sonraki →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────── DESTEK TALEPLERİ ─────────────────── -->
+        <section id="tab-tickets" class="tab-section hidden">
+            <div class="flex gap-3 mb-4">
+                <select id="ticket-status" onchange="loadTickets()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="Open">Açık</option>
+                    <option value="In Progress">İşlemde</option>
+                    <option value="Resolved">Çözüldü</option>
+                    <option value="Closed">Kapatıldı</option>
+                </select>
+                <button onclick="openModal('ticket')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-700 transition-colors font-medium ml-auto">
+                    + Yeni Talep
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/70">
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">MÜŞTERİ ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">ÇALIŞAN</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">KONU</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">DURUM</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">TARİH</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">İŞLEM</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticket-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <span id="ticket-info" class="text-xs text-slate-400"></span>
+                    <div class="flex gap-2">
+                        <button onclick="pg('tickets',-1)" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">← Önceki</button>
+                        <button onclick="pg('tickets',1)"  class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">Sonraki →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────── PAKETLER ─────────────────── -->
+        <section id="tab-packages" class="tab-section hidden">
+            <div class="flex justify-end mb-4">
+                <button onclick="openModal('package')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-700 transition-colors font-medium">
+                    + Yeni Paket
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/70">
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-slate-400">PAKET ADI</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">AYLIK ÜCRET</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">HIZ (Mbps)</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">KOTA (GB)</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-slate-400">İŞLEM</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pkg-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ═══════════════════════════════ MODAL ═══════════════════════════════ -->
+<div id="modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 id="modal-title" class="font-semibold text-slate-800"></h3>
+            <button onclick="closeModal()" class="w-7 h-7 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 text-xl leading-none transition-colors">&times;</button>
+        </div>
+        <div id="modal-body" class="px-6 py-5 max-h-[60vh] overflow-y-auto"></div>
+        <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2.5 bg-slate-50/50">
+            <button onclick="closeModal()" class="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">İptal</button>
+            <button id="modal-ok" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium">Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════ TOAST ═══════════════════════════════ -->
+<div id="toast" class="fixed bottom-5 right-5 px-4 py-3 rounded-xl text-white text-sm shadow-xl z-50 hidden max-w-xs transition-all"></div>
+
+<script>
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+async function api(url, opts = {}) {
+    const r = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+    if (!r.ok) {
+        const e = await r.json().catch(() => ({ detail: 'Sunucu hatası' }));
+        throw new Error(e.detail || 'Hata oluştu');
+    }
+    return r.status === 204 ? null : r.json();
+}
+
+function toast(msg, ok = true) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `fixed bottom-5 right-5 px-4 py-3 rounded-xl text-white text-sm shadow-xl z-50 max-w-xs ${ok ? 'bg-emerald-500' : 'bg-red-500'}`;
+    el.classList.remove('hidden');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.add('hidden'), 3500);
+}
+
+function fmtDate(s) { return s ? s.substring(0, 10) : '—'; }
+
+function fmtMoney(n) {
+    return '₺' + Number(n || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+const STATUS_CLS = {
+    active:         'bg-emerald-100 text-emerald-700',
+    cancelled:      'bg-red-100 text-red-600',
+    suspended:      'bg-yellow-100 text-yellow-700',
+    Paid:           'bg-emerald-100 text-emerald-700',
+    Unpaid:         'bg-red-100 text-red-600',
+    Overdue:        'bg-orange-100 text-orange-700',
+    Open:           'bg-blue-100 text-blue-700',
+    'In Progress':  'bg-yellow-100 text-yellow-700',
+    Resolved:       'bg-emerald-100 text-emerald-700',
+    Closed:         'bg-slate-100 text-slate-500',
+};
+
+function badge(s) {
+    return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_CLS[s] || 'bg-slate-100 text-slate-500'}">${s}</span>`;
+}
+
+function emptyRow(cols, msg = 'Kayıt bulunamadı') {
+    return `<tr><td colspan="${cols}" class="px-5 py-10 text-center text-slate-400 text-sm">${msg}</td></tr>`;
+}
+
+const inp = 'w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+const lbl = (t) => `<label class="block text-xs font-medium text-slate-600 mb-1">${t}</label>`;
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const LIMIT = 20;
+let offsets = { customers: 0, subscriptions: 0, invoices: 0, payments: 0, tickets: 0 };
+let regions = [], employees = [], packages = [];
+let modalAction = null;
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-btn').forEach(btn =>
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab))
+);
+
+const TAB_TITLES = {
+    dashboard: 'Dashboard', customers: 'Müşteriler', subscriptions: 'Abonelikler',
+    invoices: 'Faturalar', payments: 'Ödemeler', tickets: 'Destek Talepleri', packages: 'Paketler'
+};
+
+function switchTab(name) {
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.add('hidden'));
+    document.getElementById('tab-' + name).classList.remove('hidden');
+    document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('nav-active');
+        b.classList.add('text-slate-300');
+    });
+    const btn = document.querySelector(`.nav-btn[data-tab="${name}"]`);
+    btn.classList.add('nav-active');
+    btn.classList.remove('text-slate-300');
+    document.getElementById('page-title').textContent = TAB_TITLES[name];
+
+    const loaders = {
+        dashboard: loadDashboard, customers: loadCustomers,
+        subscriptions: loadSubs, invoices: loadInvs,
+        payments: loadPayments, tickets: loadTickets, packages: loadPackages
+    };
+    loaders[name]?.();
+}
+
+// ─── PAGINATION ───────────────────────────────────────────────────────────────
+function pg(section, dir) {
+    offsets[section] = Math.max(0, offsets[section] + dir * LIMIT);
+    const loaders = {
+        customers: loadCustomers, subscriptions: loadSubs,
+        invoices: loadInvs, payments: loadPayments, tickets: loadTickets
+    };
+    loaders[section]?.();
+}
+
+function pagerInfo(id, offset, count) {
+    document.getElementById(id).textContent =
+        count === 0 ? 'Kayıt yok' : `${offset + 1}–${offset + count} gösteriliyor`;
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+async function loadDashboard() {
+    try {
+        const [dash, pkgStats, regStats, unpaid, openT] = await Promise.all([
+            api('/customers/dashboard?limit=20'),
+            api('/subscriptions/stats/by-package'),
+            api('/subscriptions/stats/by-region'),
+            api('/invoices/?status=Unpaid&limit=100'),
+            api('/support-tickets/?status=Open&limit=100'),
+        ]);
+
+        const activeSubs = pkgStats.reduce((s, p) => s + (p.total_subscribers || 0), 0);
+        document.getElementById('stat-customers').textContent = dash.length;
+        document.getElementById('stat-subs').textContent = activeSubs;
+        document.getElementById('stat-unpaid').textContent = unpaid.length;
+        document.getElementById('stat-tickets').textContent = openT.length;
+
+        document.getElementById('pkg-stats').innerHTML = pkgStats.map(p => `
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-600 w-28 truncate">${p.package_name}</span>
+                <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-2 bg-blue-500 rounded-full" style="width:${activeSubs ? Math.round((p.total_subscribers / activeSubs) * 100) : 0}%"></div>
+                </div>
+                <span class="text-xs text-slate-400 w-6 text-right">${p.total_subscribers}</span>
+                <span class="text-xs font-semibold text-slate-600 w-24 text-right">${fmtMoney(p.total_revenue)}</span>
+            </div>`).join('');
+
+        const maxR = Math.max(...regStats.map(r => r.active_subscriptions || 0), 1);
+        document.getElementById('reg-stats').innerHTML = regStats.map(r => `
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-600 w-28 truncate">${r.region_name}</span>
+                <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-2 bg-emerald-500 rounded-full" style="width:${Math.round((r.active_subscriptions / maxR) * 100)}%"></div>
+                </div>
+                <span class="text-xs font-semibold text-slate-600 w-8 text-right">${r.active_subscriptions}</span>
+            </div>`).join('');
+
+        document.getElementById('dash-tbody').innerHTML = dash.map(r => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                <td class="px-5 py-3 font-medium text-slate-700">${r.customer_full_name}</td>
+                <td class="px-5 py-3 text-slate-500 text-xs">${r.region_name || '—'}</td>
+                <td class="px-5 py-3 text-slate-500 text-xs">${r.package_name || '—'}</td>
+                <td class="px-5 py-3">${r.subscription_status ? badge(r.subscription_status) : '<span class="text-slate-300">—</span>'}</td>
+                <td class="px-5 py-3 text-right font-medium ${r.total_unpaid_debt > 0 ? 'text-red-500' : 'text-slate-400'}">${fmtMoney(r.total_unpaid_debt)}</td>
+            </tr>`).join('') || emptyRow(5);
+    } catch (e) { toast(e.message, false); }
+}
+
+// ─── MÜŞTERİLER ───────────────────────────────────────────────────────────────
+async function loadCustomers() {
+    const rid = document.getElementById('cust-region').value;
+    const search = document.getElementById('cust-search').value.trim().toLowerCase();
+    const params = new URLSearchParams({ limit: LIMIT, offset: offsets.customers });
+    if (rid) params.set('region_id', rid);
+    try {
+        let data = await api('/customers/?' + params);
+        if (search) data = data.filter(c =>
+            (c.first_name + ' ' + c.last_name).toLowerCase().includes(search) ||
+            c.email.toLowerCase().includes(search) ||
+            c.phone_number.includes(search)
+        );
+        const regMap = Object.fromEntries(regions.map(r => [r.region_id, r.region_name]));
+        document.getElementById('cust-tbody').innerHTML = data.map(c => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                <td class="px-5 py-3 text-slate-400 text-xs">#${c.customer_id}</td>
+                <td class="px-5 py-3 font-medium">${c.first_name} ${c.last_name}</td>
+                <td class="px-5 py-3 text-slate-500">${c.email}</td>
+                <td class="px-5 py-3 text-slate-500">${c.phone_number}</td>
+                <td class="px-5 py-3 text-slate-500">${regMap[c.region_id] || '—'}</td>
+                <td class="px-5 py-3 text-slate-400 text-xs">${fmtDate(c.created_at)}</td>
+                <td class="px-5 py-3 text-right space-x-3">
+                    <button onclick='editCustomer(${JSON.stringify(c)})' class="text-xs text-blue-600 hover:underline">Düzenle</button>
+                    <button onclick="delCustomer(${c.customer_id})" class="text-xs text-red-500 hover:underline">Sil</button>
+                </td>
+            </tr>`).join('') || emptyRow(7);
+        pagerInfo('cust-info', offsets.customers, data.length);
+        document.getElementById('cust-prev').disabled = offsets.customers === 0;
+        document.getElementById('cust-next').disabled = data.length < LIMIT;
+    } catch (e) { toast(e.message, false); }
+}
+
+document.getElementById('cust-search').addEventListener('input', () => { offsets.customers = 0; loadCustomers(); });
+document.getElementById('cust-region').addEventListener('change', () => { offsets.customers = 0; loadCustomers(); });
+
+function editCustomer(c) { openModal('customer', c); }
+
+async function delCustomer(id) {
+    if (!confirm('Bu müşteriyi silmek istiyor musunuz?')) return;
+    try {
+        await api(`/customers/${id}`, { method: 'DELETE' });
+        toast('Müşteri silindi');
+        loadCustomers();
+    } catch (e) { toast(e.message, false); }
+}
+
+// ─── ABONELİKLER ─────────────────────────────────────────────────────────────
+async function loadSubs() {
+    const status = document.getElementById('sub-status').value;
+    const params = new URLSearchParams({ limit: LIMIT, offset: offsets.subscriptions });
+    if (status) params.set('status', status);
+    try {
+        const data = await api('/subscriptions/?' + params);
+        document.getElementById('sub-tbody').innerHTML = data.map(s => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                <td class="px-5 py-3 text-slate-400 text-xs">#${s.subscription_id}</td>
+                <td class="px-5 py-3 font-medium">${s.first_name} ${s.last_name}</td>
+                <td class="px-5 py-3 text-slate-500">${s.package_name}</td>
+                <td class="px-5 py-3 text-right font-medium">${fmtMoney(s.price_at_purchase)}</td>
+                <td class="px-5 py-3">${badge(s.status)}</td>
+                <td class="px-5 py-3 text-slate-400 text-xs">${fmtDate(s.start_date)}</td>
+                <td class="px-5 py-3 text-right">
+                    <button onclick="changeSubStatus(${s.subscription_id},'${s.status}')" class="text-xs text-blue-600 hover:underline">Durum Değiştir</button>
+                </td>
+            </tr>`).join('') || emptyRow(7);
+        pagerInfo('sub-info', offsets.subscriptions, data.length);
+    } catch (e) { toast(e.message, false); }
+}
+
+function changeSubStatus(id, current) {
+    showModal('Abonelik Durumu Güncelle', `
+        <div class="space-y-3">
+            ${lbl('Yeni Durum')}
+            <select id="new-sub-status" class="${inp}">
+                ${['active','cancelled','suspended'].map(s =>
+                    `<option value="${s}" ${s === current ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+        </div>`, async () => {
+        const status = document.getElementById('new-sub-status').value;
+        await api(`/subscriptions/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+        toast('Durum güncellendi');
+        loadSubs();
+    });
+}
+
+// ─── FATURALAR ────────────────────────────────────────────────────────────────
+async function loadInvs() {
+    const status = document.getElementById('inv-status').value;
+    const params = new URLSearchParams({ limit: LIMIT, offset: offsets.invoices });
+    if (status) params.set('status', status);
+    try {
+        const data = await api('/invoices/?' + params);
+        document.getElementById('inv-tbody').innerHTML = data.map(i => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                <td class="px-5 py-3 text-slate-400 text-xs">#${i.invoice_id}</td>
+                <td class="px-5 py-3 text-slate-500">#${i.subscription_id}</td>
+                <td class="px-5 py-3 text-right font-medium">${fmtMoney(i.amount)}</td>
+                <td class="px-5 py-3 text-slate-500">${fmtDate(i.due_date)}</td>
+                <td class="px-5 py-3">${badge(i.status)}</td>
+                <td class="px-5 py-3 text-right">
+                    ${i.status !== 'Paid'
+                        ? `<button onclick="payInvoice(${i.invoice_id},${i.amount})" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors font-medium">Öde</button>`
+                        : '<span class="text-xs text-slate-300">—</span>'}
+                </td>
+            </tr>`).join('') || emptyRow(6);
+        pagerInfo('inv-info', offsets.invoices, data.length);
+    } catch (e) { toast(e.message, false); }
+}
+
+function payInvoice(id, amount) {
+    showModal('Fatura Öde', `
+        <div class="space-y-4">
+            <div>${lbl('Tutar (₺)')}
+                <input id="pay-amt" type="number" step="0.01" value="${amount}" class="${inp}">
+            </div>
+            <div>${lbl('Ödeme Yöntemi')}
+                <select id="pay-mth" class="${inp}">
+                    <option>Credit Card</option>
+                    <option>Bank Transfer</option>
+                    <option>EFT</option>
+                </select>
+            </div>
+        </div>`, async () => {
+        await api(`/invoices/${id}/pay`, { method: 'POST', body: JSON.stringify({
+            amount: parseFloat(document.getElementById('pay-amt').value),
+            payment_method: document.getElementById('pay-mth').value,
+        })});
+        toast('Ödeme başarıyla işlendi');
+        loadInvs();
+    });
+}
+
+// ─── ÖDEMELER ────────────────────────────────────────────────────────────────
+async function loadPayments() {
+    const params = new URLSearchParams({ limit: LIMIT, offset: offsets.payments });
+    try {
+        const data = await api('/payments/?' + params);
+        document.getElementById('pay-tbody').innerHTML = data.map(p => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                <td class="px-5 py-3 text-slate-400 text-xs">#${p.payment_id}</td>
+                <td class="px-5 py-3 text-slate-500">#${p.invoice_id}</td>
+                <td class="px-5 py-3 text-right font-medium">${fmtMoney(p.amount)}</td>
+                <td class="px-5 py-3 text-slate-500">${p.payment_method}</td>
+                <td class="px-5 py-3 text-slate-400 text-xs">${fmtDate(p.payment_date)}</td>
+            </tr>`).join('') || emptyRow(5);
+        pagerInfo('pay-info', offsets.payments, data.length);
+    } catch (e) { toast(e.message, false); }
+}
+
+// ─── DESTEK TALEPLERİ ────────────────────────────────────────────────────────
+async function loadTickets() {
+    const status = document.getElementById('ticket-status').value;
+    const params = new URLSearchParams({ limit: LIMIT, offset: offsets.tickets });
+    if (status) params.set('status', status);
+    try {
+        const data = await api('/support-tickets/?' + params);
+        const empMap = Object.fromEntries(employees.map(e => [e.employee_id, e.first_name + ' ' + e.last_name]));
+        document.getElementById('ticket-tbody').innerHTML = data.map(t => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                <td class="px-5 py-3 text-slate-400 text-xs">#${t.ticket_id}</td>
+                <td class="px-5 py-3 text-slate-500">#${t.customer_id}</td>
+                <td class="px-5 py-3 text-slate-500 text-xs">${t.employee_id ? empMap[t.employee_id] || '#'+t.employee_id : '—'}</td>
+                <td class="px-5 py-3 text-slate-700 max-w-xs truncate">${t.subject}</td>
+                <td class="px-5 py-3">${badge(t.status)}</td>
+                <td class="px-5 py-3 text-slate-400 text-xs">${fmtDate(t.created_at)}</td>
+                <td class="px-5 py-3 text-right space-x-3">
+                    <button onclick='editTicket(${JSON.stringify(t)})' class="text-xs text-blue-600 hover:underline">Güncelle</button>
+                    <button onclick="delTicket(${t.ticket_id})" class="text-xs text-red-500 hover:underline">Sil</button>
+                </td>
+            </tr>`).join('') || emptyRow(7);
+        pagerInfo('ticket-info', offsets.tickets, data.length);
+    } catch (e) { toast(e.message, false); }
+}
+
+function editTicket(t) {
+    const empOpts = employees.map(e =>
+        `<option value="${e.employee_id}" ${e.employee_id === t.employee_id ? 'selected' : ''}>${e.first_name} ${e.last_name} (${e.title})</option>`).join('');
+    showModal('Destek Talebi Güncelle', `
+        <div class="space-y-4">
+            <div>${lbl('Durum')}
+                <select id="t-status" class="${inp}">
+                    ${['Open','In Progress','Resolved','Closed'].map(s =>
+                        `<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+                </select>
+            </div>
+            <div>${lbl('Atanan Çalışan')}
+                <select id="t-emp" class="${inp}">
+                    <option value="">— Atanmamış —</option>
+                    ${empOpts}
+                </select>
+            </div>
+        </div>`, async () => {
+        const empVal = document.getElementById('t-emp').value;
+        await api(`/support-tickets/${t.ticket_id}`, { method: 'PATCH', body: JSON.stringify({
+            status: document.getElementById('t-status').value,
+            employee_id: empVal ? parseInt(empVal) : null,
+        })});
+        toast('Talep güncellendi');
+        loadTickets();
+    });
+}
+
+async function delTicket(id) {
+    if (!confirm('Bu destek talebini silmek istiyor musunuz?')) return;
+    try {
+        await api(`/support-tickets/${id}`, { method: 'DELETE' });
+        toast('Talep silindi');
+        loadTickets();
+    } catch (e) { toast(e.message, false); }
+}
+
+// ─── PAKETLER ─────────────────────────────────────────────────────────────────
+async function loadPackages() {
+    try {
+        packages = await api('/packages/');
+        document.getElementById('pkg-tbody').innerHTML = packages.map(p => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                <td class="px-5 py-3 text-slate-400 text-xs">#${p.package_id}</td>
+                <td class="px-5 py-3 font-medium">${p.package_name}</td>
+                <td class="px-5 py-3 text-right font-medium">${fmtMoney(p.monthly_fee)}</td>
+                <td class="px-5 py-3 text-right text-slate-500">${p.speed_mbps}</td>
+                <td class="px-5 py-3 text-right text-slate-500">${p.quota_gb ?? 'Sınırsız'}</td>
+                <td class="px-5 py-3 text-right space-x-3">
+                    <button onclick='editPackage(${JSON.stringify(p)})' class="text-xs text-blue-600 hover:underline">Düzenle</button>
+                    <button onclick="delPackage(${p.package_id})" class="text-xs text-red-500 hover:underline">Sil</button>
+                </td>
+            </tr>`).join('');
+    } catch (e) { toast(e.message, false); }
+}
+
+function editPackage(p) { openModal('package', p); }
+
+async function delPackage(id) {
+    if (!confirm('Bu paketi silmek istiyor musunuz?')) return;
+    try {
+        await api(`/packages/${id}`, { method: 'DELETE' });
+        toast('Paket silindi');
+        loadPackages();
+    } catch (e) { toast(e.message, false); }
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function showModal(title, bodyHtml, onOk) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = bodyHtml;
+    modalAction = onOk;
+    document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.add('hidden');
+    modalAction = null;
+}
+
+document.getElementById('modal-ok').addEventListener('click', async () => {
+    if (!modalAction) return;
+    try { await modalAction(); closeModal(); }
+    catch (e) { toast(e.message, false); }
+});
+
+document.getElementById('modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal')) closeModal();
+});
+
+function openModal(type, data = null) {
+    const regOpts = regions.map(r =>
+        `<option value="${r.region_id}" ${data?.region_id === r.region_id ? 'selected' : ''}>${r.region_name}</option>`).join('');
+    const pkgOpts = packages.map(p =>
+        `<option value="${p.package_id}">${p.package_name} — ${fmtMoney(p.monthly_fee)}</option>`).join('');
+    const empOpts = employees.map(e =>
+        `<option value="${e.employee_id}">${e.first_name} ${e.last_name} (${e.title})</option>`).join('');
+
+    if (type === 'customer') {
+        const edit = !!data;
+        showModal(edit ? 'Müşteri Düzenle' : 'Yeni Müşteri', `
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>${lbl('Ad')}<input id="c-fn" value="${data?.first_name||''}" class="${inp}" placeholder="Ad"></div>
+                    <div>${lbl('Soyad')}<input id="c-ln" value="${data?.last_name||''}" class="${inp}" placeholder="Soyad"></div>
+                </div>
+                <div>${lbl('E-posta')}<input id="c-email" type="email" value="${data?.email||''}" class="${inp}" placeholder="ornek@email.com"></div>
+                <div>${lbl('Telefon')}<input id="c-phone" value="${data?.phone_number||''}" class="${inp}" placeholder="+905551234567"></div>
+                <div>${lbl('Bölge')}
+                    <select id="c-region" class="${inp}">
+                        <option value="">— Seçiniz —</option>${regOpts}
+                    </select>
+                </div>
+            </div>`, async () => {
+            const body = {
+                first_name:   document.getElementById('c-fn').value.trim(),
+                last_name:    document.getElementById('c-ln').value.trim(),
+                email:        document.getElementById('c-email').value.trim(),
+                phone_number: document.getElementById('c-phone').value.trim(),
+                region_id:    document.getElementById('c-region').value ? parseInt(document.getElementById('c-region').value) : null,
+            };
+            if (edit) {
+                await api(`/customers/${data.customer_id}`, { method: 'PATCH', body: JSON.stringify(body) });
+                toast('Müşteri güncellendi');
+            } else {
+                await api('/customers/', { method: 'POST', body: JSON.stringify(body) });
+                toast('Müşteri eklendi');
+            }
+            loadCustomers();
+        });
+    }
+
+    if (type === 'subscription') {
+        showModal('Yeni Abonelik', `
+            <div class="space-y-4">
+                <div>${lbl('Müşteri ID')}<input id="s-cid" type="number" class="${inp}" placeholder="Müşteri ID giriniz"></div>
+                <div>${lbl('Paket')}
+                    <select id="s-pkg" class="${inp}">
+                        <option value="">— Paket Seçiniz —</option>${pkgOpts}
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>${lbl('Başlangıç Tarihi')}<input id="s-start" type="date" class="${inp}"></div>
+                    <div>${lbl('Bitiş Tarihi')}<input id="s-end" type="date" class="${inp}"></div>
+                </div>
+            </div>`, async () => {
+            await api('/subscriptions/', { method: 'POST', body: JSON.stringify({
+                customer_id: parseInt(document.getElementById('s-cid').value),
+                package_id:  parseInt(document.getElementById('s-pkg').value),
+                start_date:  document.getElementById('s-start').value || null,
+                end_date:    document.getElementById('s-end').value || null,
+            })});
+            toast('Abonelik oluşturuldu');
+            loadSubs();
+        });
+    }
+
+    if (type === 'ticket') {
+        showModal('Yeni Destek Talebi', `
+            <div class="space-y-4">
+                <div>${lbl('Müşteri ID')}<input id="tk-cid" type="number" class="${inp}" placeholder="Müşteri ID giriniz"></div>
+                <div>${lbl('Atanan Çalışan')}
+                    <select id="tk-emp" class="${inp}">
+                        <option value="">— Atanmamış —</option>${empOpts}
+                    </select>
+                </div>
+                <div>${lbl('Konu')}<input id="tk-subj" class="${inp}" placeholder="Destek talebinin konusu"></div>
+                <div>${lbl('Açıklama')}
+                    <textarea id="tk-desc" rows="3" class="${inp} resize-none" placeholder="Detaylı açıklama (isteğe bağlı)"></textarea>
+                </div>
+            </div>`, async () => {
+            await api('/support-tickets/', { method: 'POST', body: JSON.stringify({
+                customer_id: parseInt(document.getElementById('tk-cid').value),
+                employee_id: document.getElementById('tk-emp').value ? parseInt(document.getElementById('tk-emp').value) : null,
+                subject:     document.getElementById('tk-subj').value.trim(),
+                description: document.getElementById('tk-desc').value.trim() || null,
+                status: 'Open',
+            })});
+            toast('Destek talebi oluşturuldu');
+            loadTickets();
+        });
+    }
+
+    if (type === 'package') {
+        const edit = !!data;
+        showModal(edit ? 'Paket Düzenle' : 'Yeni Paket', `
+            <div class="space-y-4">
+                <div>${lbl('Paket Adı')}<input id="p-name" value="${data?.package_name||''}" class="${inp}" placeholder="Paket adı"></div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>${lbl('Aylık Ücret (₺)')}<input id="p-fee" type="number" step="0.01" value="${data?.monthly_fee||''}" class="${inp}"></div>
+                    <div>${lbl('Hız (Mbps)')}<input id="p-speed" type="number" value="${data?.speed_mbps||''}" class="${inp}"></div>
+                    <div>${lbl('Kota (GB)')}<input id="p-quota" type="number" value="${data?.quota_gb??''}" class="${inp}" placeholder="Sınırsız"></div>
+                </div>
+            </div>`, async () => {
+            const body = {
+                package_name: document.getElementById('p-name').value.trim(),
+                monthly_fee:  parseFloat(document.getElementById('p-fee').value),
+                speed_mbps:   parseInt(document.getElementById('p-speed').value),
+                quota_gb:     document.getElementById('p-quota').value ? parseInt(document.getElementById('p-quota').value) : null,
+            };
+            if (edit) {
+                await api(`/packages/${data.package_id}`, { method: 'PATCH', body: JSON.stringify(body) });
+                toast('Paket güncellendi');
+            } else {
+                await api('/packages/', { method: 'POST', body: JSON.stringify(body) });
+                toast('Paket eklendi');
+            }
+            loadPackages();
+        });
+    }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function init() {
+    try {
+        [regions, employees, packages] = await Promise.all([
+            api('/regions/'),
+            api('/employees/'),
+            api('/packages/'),
+        ]);
+        const sel = document.getElementById('cust-region');
+        regions.forEach(r => {
+            const o = document.createElement('option');
+            o.value = r.region_id;
+            o.textContent = r.region_name;
+            sel.appendChild(o);
+        });
+    } catch (e) { console.error('Init hatası:', e); }
+    loadDashboard();
+}
+
+init();
+</script>
+</body>
+</html>

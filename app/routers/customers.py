@@ -6,6 +6,19 @@ from app.models import CustomerCreate, CustomerUpdate, CustomerResponse, Subscri
 router = APIRouter(prefix="/customers", tags=["Müşteriler"])
 
 
+@router.get("/dashboard")
+def customer_dashboard(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+):
+    """VIEW: Müşteri başına bölge, paket, abonelik durumu ve ödenmemiş borç özeti."""
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT * FROM v_customer_dashboard LIMIT ? OFFSET ?", (limit, offset)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
 @router.get("/", response_model=list[CustomerResponse])
 def list_customers(
     limit: int = Query(default=20, ge=1, le=100),
@@ -108,6 +121,20 @@ def delete_customer(customer_id: int):
             raise HTTPException(status_code=404, detail="Müşteri bulunamadı.")
 
 
+@router.get("/{customer_id}/debt")
+def get_customer_debt(customer_id: int):
+    """FUNCTION: fn_get_customer_debt SQL fonksiyonu olarak çağrılır (SQLite create_function ile kayıtlı)."""
+    with get_connection() as conn:
+        if not conn.execute(
+            "SELECT customer_id FROM customers WHERE customer_id = ?", (customer_id,)
+        ).fetchone():
+            raise HTTPException(status_code=404, detail="Müşteri bulunamadı.")
+        row = conn.execute(
+            "SELECT fn_get_customer_debt(?) AS debt", (customer_id,)
+        ).fetchone()
+        return {"customer_id": customer_id, "total_unpaid_debt": row["debt"]}
+
+
 @router.get("/{customer_id}/subscriptions", response_model=list[SubscriptionResponse])
 def get_customer_subscriptions(customer_id: int):
     with get_connection() as conn:
@@ -119,7 +146,8 @@ def get_customer_subscriptions(customer_id: int):
 
         rows = conn.execute(
             """SELECT s.subscription_id, s.customer_id, s.package_id,
-                      p.package_name, s.price_at_purchase, s.status, s.started_at
+                      p.package_name, s.price_at_purchase, s.status, s.started_at,
+                      s.start_date, s.end_date
                FROM subscriptions s
                JOIN packages p ON s.package_id = p.package_id
                WHERE s.customer_id = ?

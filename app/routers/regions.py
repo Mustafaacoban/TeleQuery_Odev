@@ -29,11 +29,15 @@ def create_region(data: RegionCreate):
     try:
         with get_connection() as conn:
             cursor = conn.execute(
-                "INSERT INTO regions (region_name) VALUES (?)", (data.region_name,)
+                "INSERT INTO regions (region_name, code) VALUES (?, ?)",
+                (data.region_name, data.code),
             )
-            return {"region_id": cursor.lastrowid, "region_name": data.region_name}
+            row = conn.execute(
+                "SELECT * FROM regions WHERE region_id = ?", (cursor.lastrowid,)
+            ).fetchone()
+            return dict(row)
     except sqlite3.IntegrityError:
-        raise HTTPException(status_code=409, detail="Bu bölge zaten mevcut.")
+        raise HTTPException(status_code=409, detail="Bu bölge adı veya kodu zaten mevcut.")
 
 
 @router.delete("/{region_id}", status_code=204)

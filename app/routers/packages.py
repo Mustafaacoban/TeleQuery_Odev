@@ -28,10 +28,13 @@ def get_package(package_id: int):
 def create_package(data: PackageCreate):
     with get_connection() as conn:
         cursor = conn.execute(
-            "INSERT INTO packages (package_name, monthly_fee) VALUES (?, ?)",
-            (data.package_name, data.monthly_fee),
+            "INSERT INTO packages (package_name, monthly_fee, speed_mbps, quota_gb) VALUES (?, ?, ?, ?)",
+            (data.package_name, data.monthly_fee, data.speed_mbps, data.quota_gb),
         )
-        return {"package_id": cursor.lastrowid, **data.model_dump()}
+        row = conn.execute(
+            "SELECT * FROM packages WHERE package_id = ?", (cursor.lastrowid,)
+        ).fetchone()
+        return dict(row)
 
 
 @router.patch("/{package_id}", response_model=PackageResponse)
@@ -44,14 +47,12 @@ def update_package(package_id: int, data: PackageUpdate):
             raise HTTPException(status_code=404, detail="Paket bulunamadı.")
 
         updated = dict(row)
-        if data.package_name is not None:
-            updated["package_name"] = data.package_name
-        if data.monthly_fee is not None:
-            updated["monthly_fee"] = data.monthly_fee
+        updated.update(data.model_dump(exclude_unset=True))
 
         conn.execute(
-            "UPDATE packages SET package_name = ?, monthly_fee = ? WHERE package_id = ?",
-            (updated["package_name"], updated["monthly_fee"], package_id),
+            "UPDATE packages SET package_name=?, monthly_fee=?, speed_mbps=?, quota_gb=? WHERE package_id=?",
+            (updated["package_name"], updated["monthly_fee"],
+             updated["speed_mbps"], updated.get("quota_gb"), package_id),
         )
         return updated
 

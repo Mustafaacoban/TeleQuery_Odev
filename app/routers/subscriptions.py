@@ -14,7 +14,8 @@ def list_subscriptions(
 ):
     query = """
         SELECT s.subscription_id, c.first_name, c.last_name,
-               p.package_name, s.price_at_purchase, s.status
+               p.package_name, s.price_at_purchase, s.status,
+               s.start_date, s.end_date
         FROM subscriptions s
         JOIN customers c ON s.customer_id = c.customer_id
         JOIN packages  p ON s.package_id  = p.package_id
@@ -58,9 +59,12 @@ def create_subscription(data: SubscriptionCreate):
             raise HTTPException(status_code=409, detail="Müşteri bu pakete zaten abone.")
 
         cursor = conn.execute(
-            """INSERT INTO subscriptions (customer_id, package_id, price_at_purchase)
-               VALUES (?, ?, ?)""",
-            (data.customer_id, data.package_id, dict(package)["monthly_fee"]),
+            """INSERT INTO subscriptions
+               (customer_id, package_id, price_at_purchase, start_date, end_date)
+               VALUES (?, ?, ?, ?, ?)""",
+            (data.customer_id, data.package_id, dict(package)["monthly_fee"],
+             str(data.start_date) if data.start_date else None,
+             str(data.end_date) if data.end_date else None),
         )
         return {"subscription_id": cursor.lastrowid, "status": "active"}
 
